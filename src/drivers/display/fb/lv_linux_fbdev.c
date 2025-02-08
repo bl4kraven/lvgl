@@ -7,6 +7,7 @@
  *      INCLUDES
  *********************/
 #include "lv_linux_fbdev.h"
+#include "lvgl/src/misc/lv_area.h"
 #if LV_USE_LINUX_FBDEV
 
 #include <stdlib.h>
@@ -68,6 +69,7 @@ typedef struct {
     long int screensize;
     int fbfd;
     bool force_refresh;
+	bool is_double_buffer_enabled;
 } lv_linux_fb_t;
 
 /**********************
@@ -193,6 +195,8 @@ void lv_linux_fbdev_set_file(lv_display_t * disp, const char * file)
         return;
     }
 #endif
+
+	dsc->is_double_buffer_enabled = dsc->vinfo.yres_virtual != dsc->vinfo.yres;
 
     /* Don't initialise the memory to retain what's currently displayed / avoid clearing the screen.
      * This is important for applications that only draw to a subsection of the full framebuffer.*/
@@ -350,12 +354,30 @@ static void flush_cb(lv_display_t * disp, const lv_area_t * area, uint8_t * colo
         return;
     }
 
+    const int32_t w = lv_area_get_width(area);
+	const int32_t h = lv_area_get_height(area);
+
+	bool is_skip_copy = ((uint32_t)w == dsc->vinfo.xres && (uint32_t)h == dsc->vinfo.yres);
+	if (dsc->is_double_buffer_enabled)
+	{
+		if (dsc->vinfo.yoffset == 0)
+		{
+			dsc->vinfo.yoffset = dsc->vinfo.yres;
+			if (!is_skip_copy)
+				lv_memcpy(&dsc->fbp[dsc->vinfo.yres*dsc->finfo.line_length], dsc->fbp, dsc->vinfo.yres*dsc->finfo.line_length);
+		}
+		else
+		{
+			dsc->vinfo.yoffset = 0;
+			if (!is_skip_copy)
+				lv_memcpy(dsc->fbp, &dsc->fbp[dsc->vinfo.yres*dsc->finfo.line_length], dsc->vinfo.yres*dsc->finfo.line_length);
+		}
+	}
+
     uint32_t fb_pos =
         (area->x1 + dsc->vinfo.xoffset) * px_size +
         (area->y1 + dsc->vinfo.yoffset) * dsc->finfo.line_length;
 
-
-    const int32_t w = lv_area_get_width(area);
     if(LV_LINUX_FBDEV_RENDER_MODE == LV_DISPLAY_RENDER_MODE_DIRECT && rotation == LV_DISPLAY_ROTATION_0) {
         uint32_t color_pos =
             area->x1 * px_size +
@@ -375,6 +397,14 @@ static void flush_cb(lv_display_t * disp, const lv_area_t * area, uint8_t * colo
             color_p += stride;
         }
     }
+
+	if (dsc->is_double_buffer_enabled)
+	{
+		if (ioctl(dsc->fbfd, FBIOPAN_DISPLAY, &dsc->vinfo) == -1)
+		{
+			perror("Error: failed FBIOPAN_DISPLAY");
+		}
+	}
 
     if(dsc->force_refresh) {
         dsc->vinfo.activate |= FB_ACTIVATE_NOW | FB_ACTIVATE_FORCE;
