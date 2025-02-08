@@ -157,7 +157,7 @@ static gd_GIF * gif_open(gd_GIF * gif_base)
         gif->canvas[i * 4 + 0] = *(bgcolor + 2);
         gif->canvas[i * 4 + 1] = *(bgcolor + 1);
         gif->canvas[i * 4 + 2] = *(bgcolor + 0);
-        gif->canvas[i * 4 + 3] = 0xff;
+        gif->canvas[i * 4 + 3] = 0x00;
     }
 #endif
     gif->anim_start = f_gif_seek(gif, 0, LV_FS_SEEK_CUR);
