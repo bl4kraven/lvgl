@@ -104,6 +104,23 @@ void lv_gif_set_src(lv_obj_t * obj, const void * src)
     next_frame_task_cb(gifobj->timer);
 
 }
+void lv_gif_set_src_once(lv_obj_t * obj, const void * src, uint32_t frame_count)
+{
+    lv_gif_t * gifobj = (lv_gif_t *) obj;
+	lv_gif_set_src(obj, src);
+	gifobj->gif->loop_count = 1;
+    gifobj->frame_set_index = 0;
+    gifobj->cur_frame_index = 0;
+    gifobj->is_manual_mode = 1;
+    gd_init_frame(gifobj->gif, frame_count);
+}
+
+void lv_gif_set_frame(lv_obj_t * obj, int index)
+{
+    lv_gif_t * gifobj = (lv_gif_t *) obj;
+    gifobj->frame_set_index = index;
+    lv_timer_resume(gifobj->timer);
+}
 
 void lv_gif_restart(lv_obj_t * obj)
 {
@@ -179,6 +196,9 @@ static void lv_gif_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj)
 
     gifobj->gif = NULL;
     gifobj->timer = lv_timer_create(next_frame_task_cb, 10, obj);
+    gifobj->frame_set_index = 0;
+    gifobj->cur_frame_index = 0;
+    gifobj->is_manual_mode = 0;
     lv_timer_pause(gifobj->timer);
 }
 
@@ -196,6 +216,7 @@ static void lv_gif_destructor(const lv_obj_class_t * class_p, lv_obj_t * obj)
 
 static void next_frame_task_cb(lv_timer_t * t)
 {
+    int has_next = 0;
     lv_obj_t * obj = t->user_data;
     lv_gif_t * gifobj = (lv_gif_t *) obj;
     uint32_t elaps = lv_tick_elaps(gifobj->last_call);
@@ -203,12 +224,36 @@ static void next_frame_task_cb(lv_timer_t * t)
 
     gifobj->last_call = lv_tick_get();
 
-    int has_next = gd_get_frame(gifobj->gif);
+    //cur_frame_index 是当前frame已经渲染的指针所在
+    if (gifobj->is_manual_mode)
+    {
+        if (gifobj->frame_set_index > gifobj->cur_frame_index)
+        {
+            gd_set_frame(gifobj->gif, ++gifobj->cur_frame_index);
+        }
+        else if (gifobj->frame_set_index < gifobj->cur_frame_index)
+        {
+            gd_set_frame(gifobj->gif, --gifobj->cur_frame_index);
+        }
+        else
+        {
+            // 已经是当前index
+            lv_timer_pause(gifobj->timer);
+            return;
+        }
+
+        has_next = gd_get_frame_nodispose(gifobj->gif);
+    }
+    else
+    {
+        has_next = gd_get_frame(gifobj->gif);
+    }
+
     if(has_next == 0) {
         /*It was the last repeat*/
-        lv_result_t res = lv_obj_send_event(obj, LV_EVENT_READY, NULL);
+        //lv_result_t res = lv_obj_send_event(obj, LV_EVENT_READY, NULL);
         lv_timer_pause(t);
-        if(res != LV_RESULT_OK) return;
+        //if(res != LV_RESULT_OK) return;
     }
 
     gd_render_frame(gifobj->gif, (uint8_t *)gifobj->imgdsc.data);

@@ -50,6 +50,8 @@ typedef struct _gd_GIF {
     #if LV_GIF_CACHE_DECODE_DATA
     uint8_t *lzw_cache;
     #endif
+    int * frame_seek_pos;
+    uint32_t frame_count;
 } gd_GIF;
 
 gd_GIF * gd_open_gif_file(const char * fname);
@@ -58,7 +60,11 @@ gd_GIF * gd_open_gif_data(const void * data);
 
 void gd_render_frame(gd_GIF * gif, uint8_t * buffer);
 
+int gd_init_frame(gd_GIF *gif, uint32_t frame_count);
+int gd_set_frame(gd_GIF *gif, uint32_t frame_index);
+
 int gd_get_frame(gd_GIF * gif);
+int gd_get_frame_nodispose(gd_GIF *gif);
 void gd_rewind(gd_GIF * gif);
 void gd_close_gif(gd_GIF * gif);
 

@@ -725,9 +725,14 @@ dispose(gd_GIF * gif)
 int
 gd_get_frame(gd_GIF * gif)
 {
+    dispose(gif);
+    return gd_get_frame_nodispose(gif);
+}
+
+int gd_get_frame_nodispose(gd_GIF * gif)
+{
     char sep;
 
-    dispose(gif);
     f_gif_read(gif, &sep, 1);
     while(sep != ',') {
         if(sep == ';') {
@@ -766,6 +771,12 @@ void
 gd_close_gif(gd_GIF * gif)
 {
     f_gif_close(gif);
+    if (gif->frame_seek_pos)
+    {
+        lv_free(gif->frame_seek_pos);
+        gif->frame_seek_pos = NULL;
+    }
+
     lv_free(gif);
 }
 
@@ -817,6 +828,47 @@ static void f_gif_close(gd_GIF * gif)
     if(gif->is_file) {
         lv_fs_close(&gif->fd);
     }
+}
+
+int gd_init_frame(gd_GIF * gif, uint32_t frame_count)
+{
+    if (gif->anim_start == 0)
+        return -1;
+
+    gif->frame_count = frame_count;
+
+    if (gif->frame_seek_pos)
+    {
+        lv_free(gif->frame_seek_pos);
+        gif->frame_seek_pos = NULL;
+    }
+
+    gif->frame_seek_pos = lv_malloc(frame_count * sizeof(int));
+    gd_rewind(gif);
+
+    uint32_t index = 0;
+    while (true)
+    {
+        int pos = f_gif_seek(gif, 0, LV_FS_SEEK_CUR);
+        if (gd_get_frame_nodispose(gif) <= 0)
+            break;
+
+        if (index < gif->frame_count)
+            gif->frame_seek_pos[index++] = pos;
+    }
+
+    gd_rewind(gif);
+    return 0;
+}
+
+int gd_set_frame(gd_GIF *gif, uint32_t frame_index)
+{
+    if (gif->frame_seek_pos == NULL || frame_index >= gif->frame_count)
+        return -1;
+
+    int pos = gif->frame_seek_pos[frame_index];
+    f_gif_seek(gif, pos, LV_FS_SEEK_SET);
+    return 0;
 }
 
 #endif /*LV_USE_GIF*/

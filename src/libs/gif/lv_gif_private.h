@@ -37,6 +37,9 @@ struct lv_gif_t {
     lv_timer_t * timer;
     lv_image_dsc_t imgdsc;
     uint32_t last_call;
+    int is_manual_mode;
+    int frame_set_index;
+    int cur_frame_index;
 };
 
 

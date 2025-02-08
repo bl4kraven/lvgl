@@ -54,6 +54,11 @@ lv_obj_t * lv_gif_create(lv_obj_t * parent);
  */
 void lv_gif_set_src(lv_obj_t * obj, const void * src);
 
+
+// only draw once
+void lv_gif_set_src_once(lv_obj_t * obj, const void * src, uint32_t frame_count);
+void lv_gif_set_frame(lv_obj_t * obj, int index);
+
 /**
  * Restart a gif animation.
  * @param obj pointer to a gif obj
