@@ -402,7 +402,9 @@ static void draw_task_added_event_cb(lv_event_t * e)
 
     if(lv_buttonmatrix_has_button_ctrl(obj, id, LV_CALENDAR_CTRL_TODAY)) {
         if(border_draw_dsc) border_draw_dsc->opa = LV_OPA_COVER;
-        if(border_draw_dsc) border_draw_dsc->color = lv_theme_get_color_primary(obj);
+        //if(border_draw_dsc) border_draw_dsc->color = lv_theme_get_color_primary(obj);
+        if(border_draw_dsc) border_draw_dsc->color = lv_palette_main(LV_PALETTE_RED);
+
         if(border_draw_dsc) border_draw_dsc->width += 1;
     }
 }
