@@ -100,7 +100,7 @@ static const char * const default_kb_map_lc[] = {"1#", "q", "w", "e", "r", "t", 
 #if LV_USE_ARABIC_PERSIAN_CHARS == 1
                                                  "أب",
 #endif
-                                                 LV_SYMBOL_LEFT, " ", LV_SYMBOL_RIGHT, LV_SYMBOL_OK, ""
+                                                 LV_SYMBOL_LEFT, " ", LV_SYMBOL_RIGHT, "确定", ""
                                                 };
 
 static const lv_buttonmatrix_ctrl_t default_kb_ctrl_lc_map[] = {
@@ -121,7 +121,7 @@ static const char * const default_kb_map_uc[] = {"1#", "Q", "W", "E", "R", "T", 
 #if LV_USE_ARABIC_PERSIAN_CHARS == 1
                                                  "أب",
 #endif
-                                                 LV_SYMBOL_LEFT, " ", LV_SYMBOL_RIGHT, LV_SYMBOL_OK, ""
+                                                 LV_SYMBOL_LEFT, " ", LV_SYMBOL_RIGHT, "确定", ""
                                                 };
 
 static const lv_buttonmatrix_ctrl_t default_kb_ctrl_uc_map[] = {
@@ -158,7 +158,7 @@ static const char * const default_kb_map_spec[] = {"1", "2", "3", "4", "5", "6",
 #if LV_USE_ARABIC_PERSIAN_CHARS == 1
                                                    "أب",
 #endif
-                                                   LV_SYMBOL_LEFT, " ", LV_SYMBOL_RIGHT, LV_SYMBOL_OK, ""
+                                                   LV_SYMBOL_LEFT, " ", LV_SYMBOL_RIGHT, "确定", ""
                                                   };
 
 static const lv_buttonmatrix_ctrl_t default_kb_ctrl_spec_map[] = {
@@ -172,17 +172,15 @@ static const lv_buttonmatrix_ctrl_t default_kb_ctrl_spec_map[] = {
     LV_BUTTONMATRIX_CTRL_CHECKED | 2, 6, LV_BUTTONMATRIX_CTRL_CHECKED | 2, LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2
 };
 
-static const char * const default_kb_map_num[] = {"1", "2", "3", LV_SYMBOL_KEYBOARD, "\n",
-                                                  "4", "5", "6", LV_SYMBOL_OK, "\n",
-                                                  "7", "8", "9", LV_SYMBOL_BACKSPACE, "\n",
-                                                  "+/-", "0", ".", LV_SYMBOL_LEFT, LV_SYMBOL_RIGHT, ""
+static const char * const default_kb_map_num[] = {"1", "2", "3", LV_SYMBOL_BACKSPACE, "\n",
+                                                  "4", "5", "6", "确定", "\n",
+                                                  "7", "8", "9", "0", ""
                                                  };
 
 static const lv_buttonmatrix_ctrl_t default_kb_ctrl_num_map[] = {
-    1, 1, 1, LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2,
-    1, 1, 1, LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2,
-    1, 1, 1, 2,
-    1, 1, 1, 1, 1
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1
 };
 
 static const char * const * kb_map[10] = {
@@ -363,7 +361,7 @@ void lv_keyboard_def_event_cb(lv_event_t * e)
         }
         return;
     }
-    else if(lv_strcmp(txt, LV_SYMBOL_OK) == 0) {
+    else if(lv_strcmp(txt, "确定") == 0) {
         lv_result_t res = lv_obj_send_event(obj, LV_EVENT_READY, NULL);
         if(res != LV_RESULT_OK) return;
 
